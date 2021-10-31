@@ -9,11 +9,11 @@ class PID:
         self.SetPoint = SetPoint
         self.outputLow = outputLow
         self.outputHigh = outputHigh
-        self.e = None
-        self.u = None
+        self.e = 0
+        self.u = 0
         self.automatic = True
 
-    def Run(self, T, U):
+    def run(self, T, U):
 
         if self.automatic:
             e_tmp = self.SetPoint - T
@@ -33,3 +33,11 @@ class PID:
             return U
 
 
+if __name__ == '__main__':
+    from air_heater_simulator import AirHeaterModel
+
+    heater = AirHeaterModel(22, 2, 3.5, 21.5, 0.5)
+    pi = PID(2, 30, 0, 0.5, 25)
+    for i in range((60)):
+        pi.run(heater.T, heater.u)
+        print(heater.run(pi.u, heater.T))

@@ -1,6 +1,4 @@
 
-
-
 class LPF:
     tf = None
     ts = None

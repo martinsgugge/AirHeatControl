@@ -9,12 +9,15 @@ class AirHeaterModel:
         self.Tenv = Tenv
         self.Ts = Ts
         self.T = Tenv
+        self.length = None
+        self.U = None
+        self.u = None
 
         self.initialize_time_array()
 
     def run(self, u, t):
 
-        self.TimeShift(u)
+        self.time_shift(u)
         self.T = t + (1 / self.th_t) * (-self.T + (self.Kh * self.u) + self.Tenv)*self.Ts
         return self.T
 
@@ -22,18 +25,23 @@ class AirHeaterModel:
     def time_shift(self, u):
 
         self.u = self.U.get()
-        self.U.add(u)
+        self.U.put(u)
 
 
     def initialize_time_array(self):
 
-        self.length = self.th_d / self.Ts
+        self.length = int(self.th_d / self.Ts)
         U = queue.Queue(self.length)
-        for i in range(len(self.length)):
-            U.add(0)
+        for i in range(self.length):
+            U.put(0)
 
         self.U = U
 
 
 if __name__ == '__main__':
-    print('h')
+
+    heater = AirHeaterModel(22, 2, 3.5, 21.5, 0.5)
+    for i in range((20)):
+
+        print(heater.run(heater.U.get(), heater.T))
+        (heater.U.put(5))
