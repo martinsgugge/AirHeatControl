@@ -12,6 +12,7 @@ class AirHeaterModel:
         self.length = None
         self.U = None
         self.u = None
+        self.dTdt = 0
 
         self.initialize_time_array()
 
@@ -21,6 +22,10 @@ class AirHeaterModel:
         self.T = t + (1 / self.th_t) * (-self.T + (self.Kh * self.u) + self.Tenv)*self.Ts
         return self.T
 
+    def model(self, u):
+        self.time_shift(u)
+        self.dTdt = (1 / self.th_t) * (-self.T + (self.Kh * self.u) + self.Tenv)
+        return self.dTdt
 
     def time_shift(self, u):
 
