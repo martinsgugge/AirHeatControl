@@ -74,6 +74,7 @@ class Actuator(DAQ):
         self.scaler = Scaler(low_in, high_in, low_out, high_out)
 
     def write(self, value):
+        value = self.scaler.convert(value)
         self.task.write(value)
 
 

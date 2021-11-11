@@ -8,11 +8,11 @@ class Scaler:
 
 
     def convert(self, signalIn):
-        self.y = (signalIn - self.LowIn) * ((self.HighOut - self.LowOut) / (self.HighIn - self.LowIn)) + self.LowOut
-        return self.y
+        y = (signalIn - self.LowIn) * ((self.HighOut - self.LowOut) / (self.HighIn - self.LowIn)) + self.LowOut
+        return y
 
 if __name__ == '__main__':
-    s = Scaler(1, 5, 0, 50)
+    s = Scaler(0, 1, 0, 1)
     print(s.convert(1))
     print(s.convert(3))
     print(s.convert(5))
