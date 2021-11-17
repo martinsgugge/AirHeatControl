@@ -12,7 +12,7 @@ from daq import Actuator, Sensor
 
 def static_plot_test_air_heat_control_sim():
     # Simulation Parameters
-    Ts = 0.1  # Sampling Time
+    Ts = 0.5  # Sampling Time
     Tstop = 120  # End of Simulation Time
     N = int(Tstop / Ts)  # Simulation length
 
@@ -181,11 +181,14 @@ def dynamic_plot_test_air_heat_control_sim(sim=False):
 
 def air_heat_control(sim=False):
     # Simulation Parameters
-    Ts = 0.1  # Sampling Time
+    Ts = 0.9  # Sampling Time
 
     #Set up OPC connection
-    opc = OPC("opc.tcp://192.168.10.116:49320/OPCUA/SimulationServer/")
-    opc.add_node("ns=2;s=Channel1.Device1.TT1")
+    opc_tt = OPC("opc.tcp://192.168.10.116:49320/OPCUA/SimulationServer/")
+    opc_tt.add_node("ns=2;s=Channel1.Device1.TT1")
+    opc_u = OPC("opc.tcp://192.168.10.116:49320/OPCUA/SimulationServer/")
+    opc_u.add_node("ns=2;s=Channel1.Device1.H1_u")
+
     Tenv = 21.5
     if sim:
         # Init heater
@@ -245,8 +248,10 @@ def air_heat_control(sim=False):
                 lpf.filter(tt.y)
                 pi.run(lpf.y, u_man)
                 H.write(pi.u)
-                opc.send(lpf.y)
 
+            opc_tt.send(round(lpf.y,4))
+            sleep(0.1)
+            opc_u.send(round(pi.u,4))
             print("Time [s] = %2.1f, u [V] = %3.2f, T [°C] = %2.1f" % (t, pi.u, lpf.y))
 
             if round(t,1) % 1 == 0:  # Update Plot only every second
@@ -273,11 +278,13 @@ def air_heat_control(sim=False):
             t += Ts
 
     except KeyboardInterrupt:
-        tt.task.stop()
-        tt.task.close()
-        H.task.stop()
-        H.task.close()
-        opc.disconnect()
+        if not sim:
+            tt.task.stop()
+            tt.task.close()
+            H.task.stop()
+            H.task.close()
+        opc_tt.disconnect()
+        opc_u.disconnect()
 
 
 
@@ -285,4 +292,4 @@ def air_heat_control(sim=False):
 
 if __name__ == '__main__':
     #static_plot_test_air_heat_control_sim()
-    air_heat_control(sim=False)
+    air_heat_control(sim=True)
