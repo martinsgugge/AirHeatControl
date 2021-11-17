@@ -55,6 +55,7 @@ class Sensor(DAQ):
 
     def read(self):
         self.task.read()
+        print(self.task.read())
         self.y = self.scaler.convert(self.task.read())
 
 class Actuator(DAQ):
