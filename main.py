@@ -181,7 +181,7 @@ def dynamic_plot_test_air_heat_control_sim(sim=False):
 
 def air_heat_control(sim=False):
     # Simulation Parameters
-    Ts = 0.9  # Sampling Time
+    Ts = 1  # Sampling Time
 
     #Set up OPC connection
     opc_tt = OPC("opc.tcp://192.168.10.116:49320/OPCUA/SimulationServer/")
@@ -195,7 +195,7 @@ def air_heat_control(sim=False):
         th_t = 22
         th_d = 2
         Kh = 3.5
-        sim_speed = 1
+        sim_speed = 10
 
 
         heater = AirHeaterModel(th_t, th_d, Kh, Tenv, Ts)
@@ -205,7 +205,7 @@ def air_heat_control(sim=False):
         sim_speed = 1
 
     # Init PI
-    Kp = 0.58
+    Kp = 4.12
     Ti = 18
     Td = 0
     SP = 30
@@ -226,17 +226,28 @@ def air_heat_control(sim=False):
     plt.xlabel('t [s]')
     plt.ylabel('T [°C]')
 
+
     plt.figure(2)
     plt.title('Control Signal')
     plt.xlabel('t [s]')
     plt.ylabel('u [V]')
-
+    first = True
     u_man = 1
     t = 0 #Time
-    t_window = 30  # Window to plot
+    t_window = 120  # Window to plot
 
     try:
         while True:
+            """if t > 300:
+                pi.SetPoint = 23
+            elif t > 240:
+                pi.SetPoint = 27
+            elif t > 180:
+                pi.SetPoint = 20
+            elif t > 120:
+                pi.SetPoint = 35
+            elif t > 60:
+                pi.SetPoint = 25"""
             if sim:
                 pi.run(lpf.y, heater.u)
                 (heater.run(pi.u, heater.T))
@@ -250,15 +261,19 @@ def air_heat_control(sim=False):
                 H.write(pi.u)
 
             opc_tt.send(round(lpf.y,4))
-            sleep(0.1)
+            sleep(0.2)
             opc_u.send(round(pi.u,4))
             print("Time [s] = %2.1f, u [V] = %3.2f, T [°C] = %2.1f" % (t, pi.u, lpf.y))
 
             if round(t,1) % 1 == 0:  # Update Plot only every second
                 # Plot Temperature
                 plt.figure(1)
-                plt.plot(t, lpf.y, '-o', markersize=2, color='blue')
-                plt.ylim(0, 50)
+                plt.plot(t, lpf.y, '-o', markersize=2, color='blue', label="Temperature")
+                plt.plot(t, pi.SetPoint, '-o', markersize=2, color='green', label="Set point")
+                if first:
+                    first = False
+                    plt.legend()
+                plt.ylim(20, 40)
                 if t > t_window:
                     plt.xlim((t-t_window), t)
 
@@ -285,9 +300,6 @@ def air_heat_control(sim=False):
             H.task.close()
         opc_tt.disconnect()
         opc_u.disconnect()
-
-
-
 
 
 if __name__ == '__main__':
